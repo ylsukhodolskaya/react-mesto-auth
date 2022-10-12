@@ -6,37 +6,9 @@ function Header(props) {
   const { loggedIn, email, logOut } = props
 
   const location = useLocation();
-
-  if (loggedIn) {
-    return (
-      <header className="header">
-        <img
-          src={mesto__logo}
-          alt="Лого Место"
-          className="header__logo"
-        />
-        <div className="header__info">
-          <p className="header__email">{email}</p>
-          <Link to="/sign-in" className="link header__link " onClick={logOut}>Выйти</Link>
-        </div>
-      </header>
-    )
-  }
-
-  if (location.pathname === '/sign-in') {
-    return (
-      <header className="header">
-        <img
-          src={mesto__logo}
-          alt="Лого Место"
-          className="header__logo"
-        />
-        <div className="header__info">
-          <Link to="/sign-up" className="link header__link ">Регистрация</Link>
-        </div>
-      </header>
-    )
-  }
+  const linkText = (location.pathname === '/sign-in') ? 'Регистрация' : 'Войти';
+  const buttonText = loggedIn ? 'Выйти' : linkText;
+  const linkPath = (location.pathname === '/sign-in') ? '/sign-up' : '/sign-in';
 
   return (
     <header className="header">
@@ -46,7 +18,9 @@ function Header(props) {
         className="header__logo"
       />
       <div className="header__info">
-        <Link to="/sign-in" className=" link header__link">Войти</Link>
+        {loggedIn && <p className="header__email">{email}</p>}
+        {!loggedIn && <Link to={linkPath} className="link link_place_header" >{buttonText}</Link>}
+        {loggedIn && <button type="button" className="header__link " onClick={logOut}>{buttonText}</button>}
       </div>
     </header>
   )

@@ -29,9 +29,30 @@ function App() {
   const [cards, setCards] = useState([]);
 
   const [loggedIn, setLoggedIn] = useState(false);
-  const [email, setEmail] = useState('');
 
-  const [token, setToken] = useState(localStorage.getItem('jwt') || '');
+
+  console.log(JSON.stringify(currentUser));
+
+
+
+  function checkToken() {
+    const token = localStorage.getItem('jwt') || '';
+    if (token) {
+      api.checkToken(token)
+        .then((result) => {
+          if (result && result.data) {
+            setLoggedIn(true);
+            setCurrentUser({ ...currentUser, email: result.data.email });
+            history.push('/');
+          }
+        })
+        .catch((err) => {
+          console.log('//////Ошибка api.checkToken//////', err);
+          openInfoTooltipPopup(false);
+        });
+    }
+
+  }
 
   const history = useHistory();
 
@@ -40,7 +61,7 @@ function App() {
     if (loggedIn) {
       api.getUserInfo()
         .then((data) => {
-          setCurrentUser(data)
+          setCurrentUser({ ...currentUser, ...data })
         })
         .catch((err) => {
           console.log('//////Ошибка api.getUserInfo//////', err);
@@ -63,20 +84,8 @@ function App() {
   }, [loggedIn]);
 
   useEffect(() => {
-    if (token) {
-      api.checkToken(token)
-        .then((result) => {
-          if (result && result.data) {
-            setLoggedIn(true);
-            history.push('/');
-          }
-        })
-        .catch((err) => {
-          console.log('//////Ошибка api.checkToken//////', err);
-          openInfoTooltipPopup(false);
-        });
-    }
-  }, [token]);
+    checkToken();
+  }, []);
 
   const handleEditProfileClick = () => {
     setIsEditProfilePopupOpen(true);
@@ -140,7 +149,7 @@ function App() {
   function handleUpdateUser(userData) {
     api.editUserInfo(userData)
       .then((userDataServer) => {
-        setCurrentUser(userDataServer)
+        setCurrentUser({ ...currentUser, ...userDataServer });
       })
       .catch((err) => {
         console.log(err);
@@ -153,7 +162,7 @@ function App() {
   function handleUpdateAvatar(userAvatar) {
     api.editAvatar(userAvatar)
       .then((userAvatarServer) => {
-        setCurrentUser(userAvatarServer)
+        setCurrentUser({ ...currentUser, ...userAvatarServer });
       })
       .catch((err) => {
         console.log(err);
@@ -197,9 +206,9 @@ function App() {
     api.login(loginData)
       .then((result) => {
         if (result && result.token) {
-          setEmail(loginData.email);
-          setToken(result.token);
+          setCurrentUser({ ...currentUser, email: loginData.email })
           localStorage.setItem('jwt', result.token);
+          checkToken();
         } else {
           openInfoTooltipPopup(false);
         }
@@ -213,7 +222,7 @@ function App() {
   // Выход из профиля
   function logOut() {
     setLoggedIn(false);
-    setEmail('');
+    setCurrentUser(defaultUserInfo);
     localStorage.removeItem('jwt');
   }
 
@@ -221,7 +230,7 @@ function App() {
     <>
       <CurrentUserContext.Provider value={currentUser}>
         <Header
-          email={email}
+          email={currentUser.email}
           loggedIn={loggedIn}
           logOut={logOut}
         />
