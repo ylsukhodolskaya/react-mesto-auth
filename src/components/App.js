@@ -31,6 +31,8 @@ function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
 
+  const [token, setToken] = useState(localStorage.getItem('jwt') || '');
+
   const history = useHistory();
 
   //переменная состояния currentUser и эффект при монтировании, который будет вызывать api.getUserInfo и обновлять стейт-переменную из полученного значения
@@ -41,7 +43,8 @@ function App() {
           setCurrentUser(data)
         })
         .catch((err) => {
-          console.log('//////Ошибка api.getUserInfo//////', err)
+          console.log('//////Ошибка api.getUserInfo//////', err);
+          openInfoTooltipPopup(false);
         });
     }
   }, [loggedIn]);
@@ -54,9 +57,26 @@ function App() {
         })
         .catch((err) => {
           console.log('//////Ошибка api.getInitialCards//////', err);
+          openInfoTooltipPopup(false);
         });
     }
   }, [loggedIn]);
+
+  useEffect(() => {
+    if (token) {
+      api.checkToken(token)
+        .then((result) => {
+          if (result && result.data) {
+            setLoggedIn(true);
+            history.push('/');
+          }
+        })
+        .catch((err) => {
+          console.log('//////Ошибка api.checkToken//////', err);
+          openInfoTooltipPopup(false);
+        });
+    }
+  }, [token]);
 
   const handleEditProfileClick = () => {
     setIsEditProfilePopupOpen(true);
@@ -99,7 +119,8 @@ function App() {
         setCards((serverCards) => serverCards.map((c) => c._id === card._id ? newCard : c));
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
+        openInfoTooltipPopup(false);
       });
   }
 
@@ -110,7 +131,8 @@ function App() {
         setCards((serverCards) => serverCards.filter((c) => c._id !== card._id))
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
+        openInfoTooltipPopup(false);
       })
   }
 
@@ -121,7 +143,8 @@ function App() {
         setCurrentUser(userDataServer)
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
+        openInfoTooltipPopup(false);
       })
       .finally(() => closeAllPopups());
   };
@@ -133,7 +156,8 @@ function App() {
         setCurrentUser(userAvatarServer)
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
+        openInfoTooltipPopup(false);
       })
       .finally(() => closeAllPopups());
   };
@@ -146,25 +170,51 @@ function App() {
       })
       .catch((err) => {
         console.log(err);
+        openInfoTooltipPopup(false);
       })
       .finally(() => closeAllPopups());
   }
 
-
+  // Регистрация пользователя
   function handleRegistration(registrationData) {
-    openInfoTooltipPopup(true);
-    history.push('/sign-in');
+    api.register(registrationData)
+      .then((result) => {
+        if (result && result.data) {
+          openInfoTooltipPopup(true);
+          history.push('/sign-in');
+        } else {
+          openInfoTooltipPopup(false);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        openInfoTooltipPopup(false);
+      })
   }
 
+  // Аутентификация пользователя
   function handleLogin(loginData) {
-    setLoggedIn(true);
-    setEmail(loginData.email);
-    history.push('/');
+    api.login(loginData)
+      .then((result) => {
+        if (result && result.token) {
+          setEmail(loginData.email);
+          setToken(result.token);
+          localStorage.setItem('jwt', result.token);
+        } else {
+          openInfoTooltipPopup(false);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        openInfoTooltipPopup(false);
+      })
   }
 
+  // Выход из профиля
   function logOut() {
     setLoggedIn(false);
     setEmail('');
+    localStorage.removeItem('jwt');
   }
 
   return (

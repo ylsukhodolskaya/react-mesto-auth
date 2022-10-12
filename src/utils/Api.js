@@ -66,41 +66,23 @@ class Api {
     }).then(res => this._parseResponse(res));
   }
 
-
-
-
-  //=============================================
-  // // Ставим лайк
-  // setLike(cardId) {
-  //   return fetch(`${this._url}/cards/likes/${cardId}`, {
-  //     method: 'PUT',
-  //     headers: this._headers
-  //   }).then(res => this._parseResponse(res));
-  // }
-
-  // // Удаляем лайк
-  // deleteLike(cardId) {
-  //   return fetch(`${this._url}/cards/likes/${cardId}`, {
-  //     method: 'DELETE',
-  //     headers: this._headers
-  //   }).then(res => this._parseResponse(res));
-  // }
+  //===========================================
 
   // Меняем статус лайка
-  changeLikeCardStatus (cardId, isLiked) {
-  if(isLiked) {
-    return fetch(`${this._url}/cards/likes/${cardId}`, {
-      method: 'PUT',
-      headers: this._headers
-    }).then(res => this._parseResponse(res));
-  } else {
-    return fetch(`${this._url}/cards/likes/${cardId}`, {
-      method: 'DELETE',
-      headers: this._headers
-    }).then(res => this._parseResponse(res));
+  changeLikeCardStatus(cardId, isLiked) {
+    if (isLiked) {
+      return fetch(`${this._url}/cards/likes/${cardId}`, {
+        method: 'PUT',
+        headers: this._headers
+      }).then(res => this._parseResponse(res));
+    } else {
+      return fetch(`${this._url}/cards/likes/${cardId}`, {
+        method: 'DELETE',
+        headers: this._headers
+      }).then(res => this._parseResponse(res));
+    }
   }
-}
-   
+
 
   //===========================================
 
@@ -109,6 +91,47 @@ class Api {
     return fetch(`${this._url}/cards/${cardId}`, {
       method: 'DELETE',
       headers: this._headers
+    }).then(res => this._parseResponse(res));
+  }
+
+
+  //===========================================
+
+  // Аутентификация пользователя
+  login(data) {
+    return fetch('https://auth.nomoreparties.co/signin', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    }).then(res => this._parseResponse(res));
+  }
+
+
+  //===========================================
+
+  // Регистрация пользователя
+  register(data) {
+    return fetch('https://auth.nomoreparties.co/signup', {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data)
+    }).then(res => this._parseResponse(res));
+  }
+
+  //===========================================
+
+  // Проверка токена пользователя
+  checkToken(token) {
+    return fetch('https://auth.nomoreparties.co/users/me', {
+      method: 'GET',
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
     }).then(res => this._parseResponse(res));
   }
 
@@ -122,3 +145,6 @@ export const api = new Api({
     "authorization": "b7525861-de9d-4d18-aacb-1e45dd5552b0",
   }
 });
+
+
+
